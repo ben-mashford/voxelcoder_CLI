@@ -2,15 +2,6 @@
 
 A command-line tool for aligning flow cytometry batches using autoencoder neural networks. This tool processes FCS files to correct for batch effects, enabling more robust cross-batch analysis.
 
-## Features
-
-- **Marker-based Configuration**: Specify channels using actual marker names instead of indices
-- **Flexible Compensation**: Support for internal spill matrices, external files, or no compensation
-- **GPU Acceleration**: Automatic CUDA detection with CPU fallback
-- **Comprehensive Validation**: Pre-flight checks for files, markers, and configuration
-- **Detailed Reporting**: Progress tracking and comprehensive summary reports
-- **Memory Efficient**: Chunked processing for large files
-
 ## Quick Start
 
 1. **Install Dependencies**
