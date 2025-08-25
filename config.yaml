@@ -1,0 +1,87 @@
+# Batch Alignment CLI Configuration Example
+# This file shows all available configuration options with examples
+
+experiment:
+  name: "covid_batch_alignment_example"
+  output_dir: "./results"
+
+data:
+  # Path to the reference batch directory (containing .fcs files)
+  reference_batch: "/mnt/c/projects/voxelcoder_BAK/sample_data/batch_A_200521"
+  
+  # List of target batch directories
+  target_batches:
+    - "/mnt/c/projects/voxelcoder_BAK/sample_data/batch_B_200522"
+
+channels:
+  # List of marker names to use for alignment
+  # These must exactly match the antibody channel names (pns_labels) in your FCS files
+  selected_markers:
+    - "6B11 BVU 661"
+    - "CCR7 APC Cy7"
+    - "CD137 BUV 737"
+    - "CD14 19 BV510" 
+    - "CD16 Alexa 700" 
+    - "CD161 APC" 
+    - "CD25 PECF594" 
+    - "CD3 BV650" 
+    - "CD33 BB630" 
+    - "CD38 BB780" 
+    - "CD39 BV711" 
+    - "CD4 BUV 496" 
+    - "CD45 RA Alexa 488"    
+  
+  # Scatter channels to include in output FCS (copied directly, not transformed)
+  scatter_channels:
+    - "FSC-A"
+    - "FSC-H"
+    - "FSC-W"
+    - "SSC-A"
+    - "SSC-H"
+    - "SSC-W"
+
+compensation:
+  # Compensation method:
+  # - "spill": Use internal spillover matrix from FCS files
+  # - "none": No compensation
+  # - "/path/to/compensation.csv": Use external compensation file
+  method: "spill"
+
+processing:
+  # Maximum number of cells to process per FCS file
+  max_cells_per_file: 300000
+  
+  # Maximum number of cells to use for training the autoencoder
+  max_cells_for_training: 40000
+
+model:
+  # Model architecture type: "small", "standard", "large"
+  type: "standard"
+  
+  # Encoding dimension (bottleneck size)
+  encoding_dim: 16
+  
+  # Training parameters
+  epochs: 300
+  learning_rate: 0.003
+  beta: 0.002  # Weight for histogram loss
+  
+  # Batch sizes
+  batch_size: 1024         # Training batch size
+  inference_batch_size: 8192  # Inference batch size (can be larger)
+
+hardware:
+  # Device selection: "auto", "cuda", "cpu"
+  device: "auto"
+
+export:
+  # Export options
+  fcs_files: true  # Export corrected data as FCS files (in addition to .npy)
+
+logging:
+  # Logging level: "DEBUG", "INFO", "WARNING", "ERROR"
+  level: "INFO"
+  
+  # Optional log file path (null = console only)
+  log_file: null
+  # log_file: "./results/logs/alignment.log"

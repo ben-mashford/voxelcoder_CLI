@@ -1,0 +1,16 @@
+# Core dependencies for Batch Alignment CLI
+numpy>=1.21.0
+pandas>=1.3.0
+flowkit>=1.0.0
+flowio>=1.0.0
+torch>=1.9.0
+pyyaml>=5.4.0
+
+# Optional CUDA support (install appropriate version for your system)
+# torch with CUDA can be installed separately:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Development dependencies (optional)
+# pytest>=6.0.0
+# black>=21.0.0
+# flake8>=3.9.0
