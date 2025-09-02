@@ -2,6 +2,15 @@
 
 A command-line tool for aligning flow cytometry batches using autoencoder neural networks. This tool processes FCS files to correct for batch effects, enabling more robust cross-batch analysis.
 
+![Flow Cytometry Batch Alignment](./images/align_image.png)
+
+#Superior batch alignment and hyper-dimensional cytometry
+representations allow ultra-sensitive classification of disease
+phenotypes
+
+https://www.biorxiv.org/content/biorxiv/early/2025/07/31/2025.07.28.666458.full.pdf
+
+
 ## Quick Start
 
 1. **Install Dependencies**
