@@ -4,9 +4,7 @@ A command-line tool for aligning flow cytometry batches using autoencoder neural
 
 ![Flow Cytometry Batch Alignment](./images/align_image.png)
 
-## Superior batch alignment and hyper-dimensional cytometry
-representations allow ultra-sensitive classification of disease
-phenotypes
+## Superior batch alignment and hyper-dimensional cytometry representations allow ultra-sensitive classification of disease phenotypes
 
 https://www.biorxiv.org/content/biorxiv/early/2025/07/31/2025.07.28.666458.full.pdf
 
@@ -170,10 +168,6 @@ The voxel analysis step generates all possible 2- and 3-marker combinations with
 - **MED**: Expression 0.3-0.6  
 - **HIGH**: Expression ≥ 0.6
 
-For example, with markers CD4, CD8, CD3:
-- 2-marker combinations: CD4:LOW~CD8:HIGH, CD4:MED~CD3:LOW, etc.
-- 3-marker combinations: CD4:HIGH~CD8:LOW~CD3:MED, etc.
-
 The output CSV contains the proportion of cells in each voxel combination for every sample.
 
 ## Output Structure
@@ -263,13 +257,6 @@ python batch_align.py --config config.yaml --dry-run
 - **File Sizes**: Consider `max_cells_per_file` to limit memory usage for large files
 - **Parallel Processing**: The voxel analysis uses batched GPU processing for efficiency
 
-## Data Pipeline Overview
-
-1. **Raw FCS Files** → Batch Alignment → **Aligned FCS Files**
-2. **Aligned FCS Files** → Voxel Analysis → **Occupancy Matrix**
-
-The aligned FCS files serve as the bridge between the two analysis steps, enabling downstream analysis with corrected batch effects.
-
 ## Requirements
 
 - Python 3.7+
@@ -277,10 +264,3 @@ The aligned FCS files serve as the bridge between the two analysis steps, enabli
 - FlowKit 1.0+
 - NumPy, Pandas, PyYAML
 - CUDA (optional, for GPU acceleration)
-
-## Important Notes
-
-- **FCS Export Required**: You must enable `export.fcs_files: true` in your configuration for the voxel analysis step to work
-- **Marker Consistency**: Use the same marker list for both batch alignment and voxel analysis
-- **Directory Structure**: The voxel analysis expects the specific directory structure created by batch alignment
-- **Memory Requirements**: Large datasets may require GPU memory management through batch size adjustments

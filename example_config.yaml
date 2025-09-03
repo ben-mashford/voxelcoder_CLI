@@ -7,29 +7,29 @@ experiment:
 
 data:
   # Path to the reference batch directory (containing .fcs files)
-  reference_batch: "/mnt/c/projects/voxelcoder_BAK/sample_data/batch_A_200521"
+  reference_batch: "/mnt/c/projects/sample_data/batch_A_200521"
   
   # List of target batch directories
   target_batches:
-    - "/mnt/c/projects/voxelcoder_BAK/sample_data/batch_B_200522"
+    - "/mnt/c/projects/sample_data/batch_B_200522"
 
 channels:
   # List of marker names to use for alignment
   # These must exactly match the antibody channel names (pns_labels) in your FCS files
   selected_markers:
-    - "6B11 BVU 661"
-    - "CCR7 APC Cy7"
-    - "CD137 BUV 737"
-    - "CD14 19 BV510" 
-    - "CD16 Alexa 700" 
-    - "CD161 APC" 
-    - "CD25 PECF594" 
-    - "CD3 BV650" 
-    - "CD33 BB630" 
-    - "CD38 BB780" 
-    - "CD39 BV711" 
-    - "CD4 BUV 496" 
-    - "CD45 RA Alexa 488"    
+    - "6B11"
+    - "CCR7"
+    - "CD137"
+    - "CD14" 
+    - "CD16" 
+    - "CD161" 
+    - "CD25" 
+    - "CD3" 
+    - "CD33" 
+    - "CD38" 
+    - "CD39" 
+    - "CD4" 
+    - "CD45"    
   
   # Scatter channels to include in output FCS (copied directly, not transformed)
   scatter_channels:
