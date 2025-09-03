@@ -1,24 +1,32 @@
-# Voxelcoder Flow Cytomery Batch Alignment: command-line interface
+# Voxelcoder Flow Cytometry Batch Alignment & Voxel Analysis: Command-Line Interface
 
-A command-line tool for aligning flow cytometry batches using autoencoder neural networks. This tool processes FCS files to correct for batch effects, enabling more robust cross-batch analysis.
+A command-line tool for aligning flow cytometry batches using autoencoder neural networks and generating voxel occupancy analysis. This tool processes FCS files to correct for batch effects, then performs comprehensive voxel analysis for ultra-sensitive classification of disease phenotypes.
 
 ![Flow Cytometry Batch Alignment](./images/align_image.png)
 
-#Superior batch alignment and hyper-dimensional cytometry
+## Superior batch alignment and hyper-dimensional cytometry
 representations allow ultra-sensitive classification of disease
 phenotypes
 
 https://www.biorxiv.org/content/biorxiv/early/2025/07/31/2025.07.28.666458.full.pdf
 
+## Two-Step Workflow
+
+This tool requires a two-step process:
+
+1. **Batch Alignment**: Correct for batch effects using autoencoders (`batch_align.py`)
+2. **Voxel Analysis**: Generate voxel occupancy analysis from aligned data (`voxel_analysis.py`)
 
 ## Quick Start
+
+### Step 1: Setup and Configuration
 
 1. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Prepare Your Data**
+2. **Prepare Your Data Structure**
    ```
    data/
    ├── batch_A/          # Reference batch
@@ -32,25 +40,57 @@ https://www.biorxiv.org/content/biorxiv/early/2025/07/31/2025.07.28.666458.full.
        └── ...
    ```
 
-3. **Create Configuration**
+3. **Create Configuration File**
    ```bash
-   cp config_example.yaml my_config.yaml
-   # Edit my_config.yaml with your paths and markers
+   cp config.yaml my_experiment_config.yaml
+   # Edit my_experiment_config.yaml with your paths and markers
    ```
 
 4. **Validate Configuration**
    ```bash
-   python cli.py --config my_config.yaml --validate
+   python batch_align.py --config my_experiment_config.yaml --validate
    ```
 
-5. **Run Alignment**
+### Step 2: Run Batch Alignment
+
+5. **Perform Batch Alignment**
    ```bash
-   python cli.py --config my_config.yaml
+   python batch_align.py --config my_experiment_config.yaml
+   ```
+
+   This creates aligned FCS files in the output directory structure:
+   ```
+   results/
+   ├── models/
+   │   └── autoencoder.pt
+   ├── aligned_data/
+   │   ├── batch_A/
+   │   │   ├── file1.fcs
+   │   │   └── file2.fcs
+   │   ├── batch_B/
+   │   │   └── ...
+   │   └── batch_C/
+   │       └── ...
+   └── summary_report.json
+   ```
+
+### Step 3: Run Voxel Analysis
+
+6. **Generate Voxel Occupancy Analysis**
+   ```bash
+   python voxel_analysis.py --config my_experiment_config.yaml --aligned-data ./results/aligned_data
+   ```
+
+   This produces comprehensive voxel analysis results:
+   ```
+   results/
+   ├── voxel_analysis_results.csv    # Main results table
+   └── voxel_analysis_results.pkl    # Pickle format for Python
    ```
 
 ## Configuration
 
-The tool uses YAML configuration files. Here's a minimal example:
+The tool uses a single YAML configuration file for both steps. Here's a minimal example:
 
 ```yaml
 experiment:
@@ -69,26 +109,37 @@ channels:
     - "CD8"
     - "CD3"
     # ... add your markers here
+  
+  # Optional: include scatter channels in aligned FCS output
+  scatter_channels:
+    - "FSC-A"
+    - "SSC-A"
 
 compensation:
   method: "spill"  # or "none" or "/path/to/comp.csv"
+
+export:
+  fcs_files: true  # Required for voxel analysis step
 ```
 
 ### Key Configuration Sections
 
 - **experiment**: Basic experiment settings and output location
 - **data**: Paths to reference and target batch directories
-- **channels**: List of marker names to include in alignment
+- **channels**: List of marker names and optional scatter channels
 - **compensation**: Compensation method configuration
 - **processing**: Cell count limits and processing parameters
 - **model**: Neural network architecture and training parameters
 - **hardware**: Device selection (GPU/CPU)
+- **export**: Must include `fcs_files: true` for voxel analysis
 - **logging**: Logging configuration
 
 ## Command Line Options
 
+### Batch Alignment (`batch_align.py`)
+
 ```bash
-python cli.py --config CONFIG [OPTIONS]
+python batch_align.py --config CONFIG [OPTIONS]
 
 Options:
   --config, -c PATH     Path to YAML configuration file (required)
@@ -99,10 +150,35 @@ Options:
   --help              Show help message
 ```
 
+### Voxel Analysis (`voxel_analysis.py`)
+
+```bash
+python voxel_analysis.py --config CONFIG --aligned-data PATH [OPTIONS]
+
+Options:
+  --config, -c PATH     Path to YAML configuration file (required)
+  --aligned-data PATH   Path to aligned_data directory from batch alignment
+  --verbose, -v        Enable verbose output
+  --help              Show help message
+```
+
+## Understanding Voxel Analysis
+
+The voxel analysis step generates all possible 2- and 3-marker combinations with LOW, MED, HIGH expression intervals:
+
+- **LOW**: Expression < 0.3
+- **MED**: Expression 0.3-0.6  
+- **HIGH**: Expression ≥ 0.6
+
+For example, with markers CD4, CD8, CD3:
+- 2-marker combinations: CD4:LOW~CD8:HIGH, CD4:MED~CD3:LOW, etc.
+- 3-marker combinations: CD4:HIGH~CD8:LOW~CD3:MED, etc.
+
+The output CSV contains the proportion of cells in each voxel combination for every sample.
+
 ## Output Structure
 
-The tool creates the following output structure:
-
+### After Batch Alignment
 ```
 results/
 ├── models/
@@ -110,77 +186,45 @@ results/
 ├── aligned_data/
 │   ├── reference_data.npy          # Reference dataset
 │   ├── batch_A/                   # Reference batch results
-│   │   ├── file1.fcs_before.npy
-│   │   ├── file1.fcs_after.npy
-│   │   ├── file1.fcs_corrected.fcs  # (if FCS export enabled)
-│   │   └── ...
+│   │   ├── file1.fcs              # Aligned FCS files
+│   │   └── file2.fcs
 │   ├── batch_B/                   # Target batch results
-│   │   └── ...
 │   └── batch_C/
-│       └── ...
 ├── logs/                          # Log files (if configured)
-└── summary_report.json            # Comprehensive report
+└── summary_report.json            # Batch alignment report
 ```
 
-## FCS Export Feature
-
-The tool can export corrected data back to FCS format with proper linear scaling. To enable FCS export, add this to your configuration:
-
-```yaml
-export:
-  fcs_files: true  # Export corrected data as FCS files
+### After Voxel Analysis
 ```
-
-When enabled, the tool will:
-- Transform corrected data from logicle scale back to linear scale
-- Preserve original metadata (channel names, acquisition info, etc.)
-- Create new FCS files with suffix `_corrected.fcs`
-- Only include the selected markers in the output files
-
-## Validation
-
-The tool performs extensive validation before processing:
-
-1. **Configuration Syntax**: YAML format and required fields
-2. **File System**: Directory existence and permissions
-3. **FCS Files**: Presence of .fcs files in batch directories
-4. **Marker Validation**: Ensures all selected markers exist in reference batch
-5. **Hardware**: CUDA availability (if requested)
-
-## Model Architecture
-
-The tool supports three model types:
-
-- **small**: Faster training, suitable for small datasets
-- **standard**: Default balanced architecture
-- **large**: Better reconstruction, requires more memory
-
-All models use:
-- Encoder-decoder architecture with batch normalization
-- Adam optimizer
-- Combined MSE and histogram loss
-- Logicle transformation for flow cytometry data
+results/
+├── ... (previous files)
+├── voxel_analysis_results.csv     # Main results: samples × voxel combinations
+└── voxel_analysis_results.pkl     # Same data in pickle format
+```
 
 ## Examples
 
-### Basic Usage
+### Complete Workflow
 ```bash
-python cli.py --config config.yaml
+# 1. Validate configuration
+python batch_align.py --config config.yaml --validate
+
+# 2. Run batch alignment
+python batch_align.py --config config.yaml
+
+# 3. Generate voxel analysis
+python voxel_analysis.py --config config.yaml --aligned-data ./results/aligned_data
 ```
 
-### Validation Only
+### With Verbose Output
 ```bash
-python cli.py --config config.yaml --validate
+python batch_align.py --config config.yaml --verbose
+python voxel_analysis.py --config config.yaml --aligned-data ./results/aligned_data --verbose
 ```
 
 ### Dry Run (Show Plan)
 ```bash
-python cli.py --config config.yaml --dry-run
-```
-
-### Verbose Output
-```bash
-python cli.py --config config.yaml --verbose
+python batch_align.py --config config.yaml --dry-run
 ```
 
 ## Troubleshooting
@@ -194,33 +238,49 @@ python cli.py --config config.yaml --verbose
    ```
    **Solution**: Check marker names exactly match those in your FCS files
 
-2. **CUDA Out of Memory**
+2. **FCS Export Not Enabled**
+   ```
+   Error: No FCS files found in aligned data directory
+   ```
+   **Solution**: Ensure `export.fcs_files: true` in your config for batch alignment
+
+3. **CUDA Out of Memory**
    ```
    RuntimeError: CUDA out of memory
    ```
    **Solution**: Reduce `batch_size` or `inference_batch_size` in config
 
-3. **No FCS Files Found**
+4. **No Aligned Data Found**
    ```
-   Error: No FCS files found in reference batch
+   Error: No batch directories found in aligned_data
    ```
-   **Solution**: Verify directory paths and file extensions (.fcs)
+   **Solution**: Run batch alignment step first, ensure it completed successfully
 
-### Performance Tips
+## Performance Tips
 
-- Use GPU for faster processing: `device: "cuda"`
-- Adjust batch sizes based on available memory
-- Use `max_cells_per_file` to limit memory usage
-- Monitor GPU memory with `nvidia-smi`
+- **GPU Usage**: Both steps benefit from GPU acceleration if available
+- **Memory Management**: Adjust batch sizes based on available memory
+- **File Sizes**: Consider `max_cells_per_file` to limit memory usage for large files
+- **Parallel Processing**: The voxel analysis uses batched GPU processing for efficiency
+
+## Data Pipeline Overview
+
+1. **Raw FCS Files** → Batch Alignment → **Aligned FCS Files**
+2. **Aligned FCS Files** → Voxel Analysis → **Occupancy Matrix**
+
+The aligned FCS files serve as the bridge between the two analysis steps, enabling downstream analysis with corrected batch effects.
 
 ## Requirements
 
 - Python 3.7+
-- PyTorch 1.9+
+- PyTorch 1.9+ (with CUDA support recommended)
 - FlowKit 1.0+
 - NumPy, Pandas, PyYAML
 - CUDA (optional, for GPU acceleration)
 
-## License
+## Important Notes
 
-This project is based on the VoxelCoder batch alignment methodology.
+- **FCS Export Required**: You must enable `export.fcs_files: true` in your configuration for the voxel analysis step to work
+- **Marker Consistency**: Use the same marker list for both batch alignment and voxel analysis
+- **Directory Structure**: The voxel analysis expects the specific directory structure created by batch alignment
+- **Memory Requirements**: Large datasets may require GPU memory management through batch size adjustments
