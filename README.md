@@ -40,7 +40,7 @@ This tool requires a two-step process:
 
 3. **Create Configuration File**
    ```bash
-   cp config.yaml my_experiment_config.yaml
+   cp example_config.yaml my_experiment_config.yaml
    # Edit my_experiment_config.yaml with your paths and markers
    ```
 
